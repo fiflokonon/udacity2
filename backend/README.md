@@ -55,25 +55,10 @@ These are the files you'd want to edit in the backend:
 1. `backend/flaskr/__init__.py`
 2. `backend/test_flaskr.py`
 
-One note before you delve into your tasks: for each endpoint, you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior.
 
-1. Use Flask-CORS to enable cross-domain requests and set response headers.
-2. Create an endpoint to handle `GET` requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories.
-3. Create an endpoint to handle `GET` requests for all available categories.
-4. Create an endpoint to `DELETE` a question using a question `ID`.
-5. Create an endpoint to `POST` a new question, which will require the question and answer text, category, and difficulty score.
-6. Create a `POST` endpoint to get questions based on category.
-7. Create a `POST` endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question.
-8. Create a `POST` endpoint to get questions to play the quiz. This endpoint should take a category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.
-9. Create error handlers for all expected errors including 400, 404, 422, and 500.
+### Documentation 
 
-## Documenting your Endpoints
-
-You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
-
-### Documentation Example
-
-`GET '/api/v1.0/categories'`
+`GET '/categories'`
 
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
@@ -90,6 +75,180 @@ You will need to provide detailed documentation of your API endpoints including 
 }
 ```
 
+`GET '/questions'` or `GET '/questions?page=${integer}'`
+- `GET '/questions?page=${integer}'` : This endpoint is used to PAGINATE------the return
+- Fetches a dictionaryof questions in which the keys all categories, a questions list in which by question we have all question attributes
+- Request Arguments: None
+- Returns: An object with differents keys such as :
+  *`categories`, that contains an object of `id: category_string` key: value pairs
+  *`questions`, that contains a questions list
+  *`total_questions`, that contains the total number of questions that we get
+
+```json
+{
+  "total_questions": 27,
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        "3": "Geography",
+        "4": "History",
+        "5": "Entertainment",
+        "6": "Sports"
+    },
+    "questions": [
+        {
+            "answer": "Maya Angelou",
+            "category": 4,
+            "difficulty": 2,
+            "id": 5,
+            "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        },
+        {
+            "answer": "Muhammad Ali",
+            "category": 4,
+            "difficulty": 1,
+            "id": 9,
+            "question": "What boxer's original name is Cassius Clay?"
+        },
+        {
+            "answer": "Apollo 13",
+            "category": 5,
+            "difficulty": 4,
+            "id": 2,
+            "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+        }
+    ]
+}
+```
+
+`POST '/questions'`
+
+- Create new question
+- Request Arguments : 
+```json
+{
+    "question": "question",
+    "answer": "answer",
+    "category": category_id,
+    "difficulty": difficulty
+}
+```
+- Returns: An object with differents keys like:
+  *`code`, that contains the response status code
+  *`message`, that contains the response message
+  *`success`, that contains the success status
+```json
+{
+    "code": 201,
+    "message": "created",
+    "success": true
+}
+```
+
+`DELETE '/questions/${id}'`
+
+- Delete a question
+- Url Arguments: 
+  *`id`, that contains the question id
+- Request Arguments: None
+- Returns: An object with single key `success`, that contains the operation success status
+```json
+{
+    "success": false
+}
+```
+`POST 'questions/search'`
+
+- Search questions
+- Request Arguments : 
+```json
+{
+  "searchTerm": "searchTerm"
+}
+```
+- Returns: An object with differents keys such as:
+  *`categories`, that contains an object of `id: category_string` key: value pairs
+  *`questions`, that contains a questions list
+  *`total_questions`, that contains the total number of questions that we get
+```json
+{
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        "3": "Geography",
+        "4": "History",
+        "5": "Entertainment",
+        "6": "Sports"
+    },
+    "questions": [
+        {
+            "answer": "Maya Angelou",
+            "category": 4,
+            "difficulty": 2,
+            "id": 5,
+            "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        }
+    ],
+    "success": true,
+    "total_questions": 2
+}
+```
+
+`GET '/categories/${id}/questions'`
+
+- Fetches questions list for a category
+- Url Arguments: 
+  *`id`, that contains the category id
+- Request Arguments: None
+- Returns: An object with differents keys such as:
+  *`current_category`, that contains type of current category
+  *`questions`, that questions list
+  *`total_questions`, that contains total number of questions for this category
+```json
+{
+    "current_category": "History",
+    "questions": [
+        {
+            "answer": "Maya Angelou",
+            "category": 4,
+            "difficulty": 2,
+            "id": 5,
+            "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        },
+        {
+            "answer": "Muhammad Ali",
+            "category": 4,
+            "difficulty": 1,
+            "id": 9,
+            "question": "What boxer's original name is Cassius Clay?"
+        },
+    ],
+    "total_questions": 5
+}
+```
+
+`POST '/quizzes'`
+
+- Fetches next question
+- Request Arguments:
+```json
+{
+  "quiz_category": "History",
+  "previous_questions": [5,9]
+}
+```
+- Returns: An object with single key `question`, that contains a question object
+```json
+{
+  "question": {
+      "answer": "George Washington Carver",
+      "category": 4,
+      "difficulty": 2,
+      "id": 12,
+      "question": "Who invented Peanut Butter?"
+  }
+}
+```
 ## Testing
 
 Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.

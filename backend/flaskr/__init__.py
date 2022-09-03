@@ -1,4 +1,5 @@
 from crypt import methods
+from operator import truediv
 import os
 from unicodedata import category
 from webbrowser import get
@@ -62,15 +63,18 @@ def create_app(test_config=None):
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         question = Question.query.filter_by(id = question_id).one_or_none()
-        try:
-            question.delete()
-            return jsonify({
-                "success": True
-            })
-        except:
-            return jsonify({
-                "success": False
-            })
+        if question:
+            try:
+                question.delete()
+                return jsonify({
+                    "success": True
+                })
+            except:
+                return jsonify({
+                    "success": False
+                })
+        else:
+            return not_found(404)
     
     #------------------------------------------------#
     #----------CREATE QUESTION-----------------------#
@@ -100,17 +104,19 @@ def create_app(test_config=None):
     #-----------------------------------------------#
     @app.route('/questions/search', methods=["POST"])
     def search_question():
+        datas = {}
         search_term = request.get_json().get('searchTerm')
         print(search_term)
         questions = Question.query.filter(Question.question.ilike('%' + search_term + '%')).all()
         categories = Category.query.all()
-        formatted_cat = [category.format() for category in categories]
         formatted = [question.format() for question in questions]
+        for category in categories:
+            datas[str(category.id)] = category.type
         return jsonify({
             "success": True,
             "questions": formatted,
             "total_questions": len(formatted),
-            "categories": formatted_cat
+            "categories": datas
         })
     
     #--------------------------------------#
@@ -118,14 +124,17 @@ def create_app(test_config=None):
     #--------------------------------------#
     @app.route('/categories/<category_id>/questions', methods=['GET'])
     def category_questions(category_id):
-        questions = Question.query.filter(Question.category == category_id).all()
-        formatted = [question.format() for question in questions]
         category = Category.query.filter_by(id = category_id).first()
-        return jsonify({
-            "questions": formatted,
-            "current_category": category.type,
-            "total_questions": len(formatted) 
-        })
+        if category:
+            questions = Question.query.filter(Question.category == category_id).all()
+            formatted = [question.format() for question in questions]
+            return jsonify({
+                "questions": formatted,
+                "current_category": category.type,
+                "total_questions": len(formatted) 
+            })
+        else :
+            return not_found(404)
     
     #---------------------------------------------#
     #-----------GET NEXT QUESTION-----------------#
@@ -134,10 +143,15 @@ def create_app(test_config=None):
     def quizzes():
         category = request.get_json().get('quiz_category')
         previous = request.get_json().get('previous_questions')
-        category_id = Category.query.with_entities(Category.id).filter(Category.type == category).first()
-        quizze = Question.query.filter(Question.category == category_id).filter(Question.id.notin_(previous)).first()
+        current_category = Category.query.filter(Category.type == category).first()
+        current_category = current_category.format()
+        quizze = Question.query.filter(Question.category == current_category['id']).filter(Question.id.notin_(previous)).first()
+        if quizze: 
+            quizze = quizze.format()
+        else :
+            quizze = quizze
         return jsonify({
-            "question": quizze.format()
+            "question": quizze
         })
 
     #------------------------------------------------#
@@ -182,7 +196,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 500,
             "message": "Internal Server Error"
-        })
+        }),500
 
 
     return app
